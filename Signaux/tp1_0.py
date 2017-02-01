@@ -21,8 +21,7 @@ def make_sin(a=1.0, ph=0, f=440.0, fe=8000.0, nT=1):
         sig_t.append(t)
         sig_s.append(a * math.sin((omega * t) + ph))
 
-    label = "" + two_float(f) + " Hz, " + two_float(a) \
-            + " V, " + two_float(ph) + " pH, " + two_float(fe) + " fe"
+    label = "{0} Hz, {1} V, {2} pH, {3} fe".format(two_float(f), two_float(a), two_float(ph), two_float(fe))
     return sig_t, sig_s, label
 
 
