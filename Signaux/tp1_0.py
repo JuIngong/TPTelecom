@@ -21,23 +21,30 @@ def make_sin(a=1.0, ph=0, f=440.0, fe=8000.0, nT=1):
         sig_t.append(t)
         sig_s.append(a * math.sin((omega * t) + ph))
 
-    return sig_t, sig_s
+    label = "" + two_float(f) + " Hz, " + two_float(a) \
+            + " V, " + two_float(ph) + " pH, " + two_float(fe) + " fe"
+    return sig_t, sig_s, label
 
 
-def plot(inx, iny, label, format='-bo', size=7, title="Deux sinusoides ..."):
+def two_float(value):
+    return ("{:.2f}".format(value)).rstrip('0').rstrip('.')
+
+
+def plot(inx, iny, label, format='-bo', size=7):
     plt.plot(inx, iny, format, markersize=size, label=label)
+
+
+def build_plot(ylim, title, grid_style=":"):
     plt.xlabel('time (s)')
     plt.ylabel('voltage (V)')
     plt.title(title)
-    plt.ylim([-1.5, +1.5])
-    plt.xlim([0, 0.04])
-    plt.grid(linestyle=":", visible=True)
+    plt.ylim(ylim)
+    plt.grid(linestyle=grid_style, visible=True)
     plt.legend()
+    plt.show()
 
 
 if __name__ == '__main__':
-    x, y = make_sin(2, f=50.0, fe=1000.0, nT=2)
-    plot(x, y, "Une sinusoide ...")
-
-    plt.show()
-
+    x, y, label = make_sin(2, f=50.0, fe=1000.0, nT=2)
+    plot(x, y, "s1 " + label)
+    build_plot([-2, +2], "Une sinusoide ...")
