@@ -1,6 +1,6 @@
 import math
 
-from Signaux.tp1_0 import make_sin, plot, build_plot
+from Signaux.TP1.tp1_0 import make_sin, plot, build_plot
 
 if __name__ == '__main__':
     x, y, label = make_sin(0.5, math.pi, 50.0, 1000.0, 2)

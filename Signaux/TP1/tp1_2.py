@@ -1,6 +1,6 @@
 import math
 
-from Signaux.tp1_0 import plot, build_plot, two_float
+from Signaux.TP1.tp1_0 import plot, build_plot, two_float
 
 
 # generation de courbe carre

@@ -4,7 +4,7 @@ from abc import abstractmethod, ABCMeta
 import matplotlib.pyplot as plt
 import numpy as np
 
-from Signaux.tp1_0 import build_plot
+from Signaux.TP1.tp1_0 import build_plot
 
 
 # Classe mère des signaux
@@ -22,10 +22,10 @@ class Signal(metaclass=ABCMeta):
         self.label = ""
 
     # construction du signal de facon vectoriel
-    def make(self):
+    def make(self, offset=0):
         n = np.arange(self.N * self.nT)
         t = self.te * n
-        self.sig_t = t.tolist()
+        self.sig_t = (t+offset).tolist()
 
         # vectorisation de la fonction formule
         # f = np.vectorize(self.formule, otypes=[np.float])
@@ -42,10 +42,10 @@ class Signal(metaclass=ABCMeta):
         return
 
     # construction du signal de facon scalaire
-    def make_scal(self):
-        for i in range(self.N * self.nT):
+    def make_scal(self, offset=0.):
+        for i in range(int(self.N * self.nT)):
             t = self.te * i
-            self.sig_t.append(t)
+            self.sig_t.append(t+offset)
             # utilisation de la fonction  pour le point en y
             self.sig_s.append(self.formule_scal(t))
 
