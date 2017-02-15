@@ -9,11 +9,11 @@ from Signaux.TP1.tp1_0 import build_plot
 
 # Classe mère des signaux
 class Signal(metaclass=ABCMeta):
-    def __init__(self, a, f, fe, nT):
+    def __init__(self, a, f, fe, nT=1, duree=None):
+        self.nT = f * duree if duree is not None else nT
         self.a = a
         self.f = f
         self.fe = fe
-        self.nT = nT
 
         self.N = int(self.fe / self.f)
         self.te = 1.0 / self.fe
@@ -25,7 +25,7 @@ class Signal(metaclass=ABCMeta):
     def make(self, offset=0):
         n = np.arange(self.N * self.nT)
         t = self.te * n
-        self.sig_t = (t+offset).tolist()
+        self.sig_t = (t + offset).tolist()
 
         # vectorisation de la fonction formule
         # f = np.vectorize(self.formule, otypes=[np.float])
@@ -45,7 +45,7 @@ class Signal(metaclass=ABCMeta):
     def make_scal(self, offset=0.):
         for i in range(int(self.N * self.nT)):
             t = self.te * i
-            self.sig_t.append(t+offset)
+            self.sig_t.append(t + offset)
             # utilisation de la fonction  pour le point en y
             self.sig_s.append(self.formule_scal(t))
 
@@ -94,8 +94,7 @@ class TriSig(Signal):
 # Classe de signaux sinusoide
 class SinSig(Signal):
     def __init__(self, a, f, fe, nT=1, ph=0., duree=None):
-        self.nT = f * duree if duree is not None else nT
-        super().__init__(a, f, fe, self.nT)
+        super().__init__(a, f, fe, nT, duree)
         self.ph = ph
 
     def formule_scal(self, t):
