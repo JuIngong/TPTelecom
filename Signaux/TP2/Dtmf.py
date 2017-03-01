@@ -7,6 +7,7 @@ from Signaux.TP1.tp1_usingClasses import SinSig, Signal
 from Signaux.TP2.tp2_1 import Melodie
 
 
+# Obsolete
 class Dtmf(SinSig):
     def __init__(self, a, f, f2, fe, nT=1, duree=None):
         self.nT = f * duree if duree is not None else nT
@@ -26,6 +27,7 @@ class Dtmf(SinSig):
         self.sig_s.append(0)
 
 
+# Herite de signal et permet de construire un signal ajoutant le resultat de chaque formule
 class Composite(Signal):
     def __init__(self, signals):
         super().__init__(signals[0].a, signals[0].f, signals[0].fe, signals[0].nT)
