@@ -27,9 +27,9 @@ def myhexlify(a, sep=':'):
     si a[i] == 65 alors b="\x41" (code ascii du A majuscule)
     '''
 
-    b = ("%.2x" % (ord(a[0])))
+    b = ("%.2x" % (a[0]))
     for c in a[1:]:
-        b = b + sep + ("%.2x" % (ord(c)))
+        b = b + sep + ("%.2x" % ((c)))
 
     return b
 
@@ -103,6 +103,74 @@ def readtrames(filename):
     return trames
 
 
+def type_protocole(type):
+    return {
+        '0800': "IPv4",
+        '86DD': "IPv6",
+        '0806': "ARP",
+        '8035': "RARP",
+        '809B': "Apple Talk",
+        '88CD': "SERCOS III",
+        '0600': "XNS",
+        '8100': "VLAN",
+    }.get(type, "Undefined")
+
+
+def proto(type):
+    return {
+        '06': "TCP",
+        '17': "UDP",
+        '01': "ICMP",
+    }.get(type, "Undefined")
+
+
+def build_ipv4(data):
+    s = ""
+    s += str(int(myhexlify(data[0:1]), 16))
+    s += "."
+    s += str(int(myhexlify(data[1:2]), 16))
+    s += "."
+    s += str(int(myhexlify(data[2:3]), 16))
+    s += "."
+    s += str(int(myhexlify(data[3:4]), 16))
+    return s
+
+
+def analyse(data, protocole):  # print du contenu d'une requete
+    if protocole == "ARP":  # traitement arp
+        if myhexlify(data[1:2]) == '01':
+            print("Type de materiel : Ethernet")
+        if myhexlify(data[2:4], "") == '0800':
+            print("Type protocole : IP")
+        if myhexlify(data[4:5]) == '06':
+            print("Longueur adresse physique : Ethernet")
+        if myhexlify(data[5:6]) == '04':
+            print("Longueur adresse logique : IPv4")
+        if myhexlify(data[5:6]) == '06':
+            print("Longueur adresse logique : IPv6")
+        if myhexlify(data[7:8]) == '01':
+            print("Operation : Request")
+        if myhexlify(data[7:8]) == '02':
+            print("Operation : Reply")
+        print("Adresse mac source : {}".format(myhexlify(data[8:14])))
+        print("Adresse IP source : {}".format(build_ipv4(data[14:18])))
+        print("Adresse mac destination : {}".format(myhexlify(data[18:24])))  # vide dans le cas d'une requete
+        print("Adresse IP destination : {}".format(build_ipv4(data[24:28])))
+    elif protocole == "IPv4":  # traitement ipv4
+        d = myhexlify(data, "")
+        print("Version Ip : " + d[0:1])
+        print("Longueur entete : " + d[1:2])
+        print("Longueur : " + str(int(d[4:8], 16)))
+        print("Duree de vie : " + str(int(d[16:18], 16)))
+
+        p = proto(d[18:20])
+        print("Protocole : " + p)
+        print("Adresse source : {}.{}.{}.{}".format(int(d[20:22], 16), int(d[22:24], 16), int(d[24:26], 16),
+                                                    int(d[26:28], 16)))
+        print("Adresse dest : {}.{}.{}.{}".format(int(d[28:30], 16), int(d[30:32], 16), int(d[32:34], 16),
+                                                  int(d[34:36], 16)))
+
+
 def decodageEthernet(trame):
     """
     Analyse une trame Ethernet :
@@ -115,19 +183,19 @@ def decodageEthernet(trame):
     print("Header Ethernet :")  # parse ethernet header
     eth_length = 14
     eth_header = trame[:eth_length]
+    eth_data = trame[eth_length:]
     print(type(eth_header))
 
     # Parsing de l'entete Ethernet en utilisant le slicing Python
     print('Destination MAC : {}'.format(myhexlify(eth_header[0:6])))
-    print('Destination MAC : {}'.format(binascii.hexlify(eth_header[0:6])))
+    print('Source MAC : {}'.format(myhexlify(eth_header[6:12])))
+    # On enregistre le type de protocole
+    prot = type_protocole(myhexlify(eth_header[12:14], ""))
+    print('Type de protocole : {}'.format(prot))
 
-    # une autre facon d'extraire les champs de l'entete !
-    # For more information on format strings and endiannes, refer to
-    # https://docs.python.org/3.5/library/struct.html
-    ethfields = unpack('!6s6sH', eth_header)
-    adrd_mac = ethfields[0]
-    adrs_mac = ethfields[1]
-    print('Destination MAC : {}'.format(myhexlify(adrd_mac)))
+    print('\nData : ')
+    # On print ce qui est dans les donnée
+    analyse(eth_data, prot)
 
 
 # =================================================================
@@ -139,8 +207,8 @@ if __name__ == '__main__':
 
     # Transformation des echanges contenus dans le fichier
     # vers une liste de strings
-    trames = readtrames("XXX.txt")
-    print(trames)
+    trames = readtrames("XXXgr1.txt")
+    # print(trames)
 
     # Analyse de chaque trame de la liste
     for trame in trames:
