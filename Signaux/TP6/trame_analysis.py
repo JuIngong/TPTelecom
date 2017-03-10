@@ -210,7 +210,6 @@ def decodageEthernet(trame):
     # On print ce qui est dans les donnée
     analyse(eth_data, prot)
 
-
 # =================================================================
 
 if __name__ == '__main__':
