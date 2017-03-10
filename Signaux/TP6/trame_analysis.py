@@ -138,37 +138,50 @@ def build_ipv4(data):
 
 def analyse(data, protocole):  # print du contenu d'une requete
     if protocole == "ARP":  # traitement arp
-        if myhexlify(data[1:2]) == '01':
-            print("Type de materiel : Ethernet")
-        if myhexlify(data[2:4], "") == '0800':
-            print("Type protocole : IP")
-        if myhexlify(data[4:5]) == '06':
-            print("Longueur adresse physique : Ethernet")
-        if myhexlify(data[5:6]) == '04':
-            print("Longueur adresse logique : IPv4")
-        if myhexlify(data[5:6]) == '06':
-            print("Longueur adresse logique : IPv6")
-        if myhexlify(data[7:8]) == '01':
-            print("Operation : Request")
-        if myhexlify(data[7:8]) == '02':
-            print("Operation : Reply")
-        print("Adresse mac source : {}".format(myhexlify(data[8:14])))
-        print("Adresse IP source : {}".format(build_ipv4(data[14:18])))
-        print("Adresse mac destination : {}".format(myhexlify(data[18:24])))  # vide dans le cas d'une requete
-        print("Adresse IP destination : {}".format(build_ipv4(data[24:28])))
+        analyse_arp(data)
     elif protocole == "IPv4":  # traitement ipv4
-        d = myhexlify(data, "")
-        print("Version Ip : " + d[0:1])
-        print("Longueur entete : " + d[1:2])
-        print("Longueur : " + str(int(d[4:8], 16)))
-        print("Duree de vie : " + str(int(d[16:18], 16)))
+        analyse_ipv4(data)
 
-        p = proto(d[18:20])
-        print("Protocole : " + p)
-        print("Adresse source : {}.{}.{}.{}".format(int(d[20:22], 16), int(d[22:24], 16), int(d[24:26], 16),
-                                                    int(d[26:28], 16)))
-        print("Adresse dest : {}.{}.{}.{}".format(int(d[28:30], 16), int(d[30:32], 16), int(d[32:34], 16),
-                                                  int(d[34:36], 16)))
+
+def analyse_ipv4(data):
+    d = myhexlify(data, "")
+    print("Version Ip : " + d[0:1])
+    print("Longueur entete : " + d[1:2])
+    print("Longueur : " + str(int(d[4:8], 16)))
+    print("Duree de vie : " + str(int(d[16:18], 16)))
+    p = proto(d[18:20])
+    print("Protocole : " + p)
+    print("Adresse source : {}.{}.{}.{}".format(int(d[24:26], 16), int(d[26:28], 16), int(d[28:30], 16),
+                                                int(d[30:32], 16)))
+    print("Adresse dest : {}.{}.{}.{}".format(int(d[32:34], 16), int(d[34:36], 16), int(d[36:38], 16),
+                                              int(d[38:40], 16)))
+    if p == 'ICMP':  # cas ICMP
+        if d[40:42] == '00':
+            print('Type ICMP : Echo Reply (reponse ping)')
+        elif d[40:42] == '08':
+            print('Type ICMP : Echo (ping)')
+
+
+def analyse_arp(data):
+    if myhexlify(data[1:2]) == '01':
+        print("Type de materiel : Ethernet")
+    if myhexlify(data[2:4], "") == '0800':
+        print("Type protocole : IP")
+    if myhexlify(data[4:5]) == '06':
+        print("Longueur adresse physique : Ethernet")
+    if myhexlify(data[5:6]) == '04':
+        print("Longueur adresse logique : IPv4")
+    if myhexlify(data[5:6]) == '06':
+        print("Longueur adresse logique : IPv6")
+    if myhexlify(data[7:8]) == '01':
+        print("Operation : Request")
+    if myhexlify(data[7:8]) == '02':
+        print("Operation : Reply")
+    print("Adresse mac source : {}".format(myhexlify(data[8:14])))
+    print("Adresse IP source : {}".format(build_ipv4(data[14:18])))
+    print("Adresse mac destination : {}".format(
+        myhexlify(data[18:24])))  # vide dans le cas d'une requete, car le but est de trouver l'adresse physique
+    print("Adresse IP destination : {}".format(build_ipv4(data[24:28])))
 
 
 def decodageEthernet(trame):
@@ -202,13 +215,9 @@ def decodageEthernet(trame):
 
 if __name__ == '__main__':
 
-    # Pour comprendre les manipulations de bytes :
-    manipulation_binascii()
-
     # Transformation des echanges contenus dans le fichier
     # vers une liste de strings
     trames = readtrames("XXXgr1.txt")
-    # print(trames)
 
     # Analyse de chaque trame de la liste
     for trame in trames:
